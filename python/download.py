@@ -2,6 +2,7 @@ import os
 import urllib.request
 import tarfile
 
+
 def download_datasets(data_dir):
     """
     DOWNLOAD_DATASETS Checks, and, if required, downloads the necessary datasets for the testing.
@@ -12,25 +13,32 @@ def download_datasets(data_dir):
             DATA_ROOT/datasets/rparis6k/  : folder with Paris images
     """
 
+    # 创建根目录
     # Create data folder if it does not exist
     if not os.path.isdir(data_dir):
         os.mkdir(data_dir)
-    
+
+    # 创建datasets子文件夹
     # Create datasets folder if it does not exist
     datasets_dir = os.path.join(data_dir, 'datasets')
     if not os.path.isdir(datasets_dir):
         os.mkdir(datasets_dir)
 
+    # 依次下载roxford5k和rparis6k
     # Download datasets folders datasets/DATASETNAME/
     datasets = ['roxford5k', 'rparis6k']
     for di in range(len(datasets)):
         dataset = datasets[di]
 
         if dataset == 'roxford5k':
+            # 下载地址路径
             src_dir = 'https://www.robots.ox.ac.uk/~vgg/data/oxbuildings'
+            # 文件名列表
             dl_files = ['oxbuild_images-v1.tgz']
         elif dataset == 'rparis6k':
+            # 下载地址路径
             src_dir = 'https://www.robots.ox.ac.uk/~vgg/data/parisbuildings'
+            # 文件名列表
             dl_files = ['paris_1-v1.tgz', 'paris_2-v1.tgz']
         else:
             raise ValueError('Unknown dataset: {}!'.format(dataset))
@@ -41,23 +49,31 @@ def download_datasets(data_dir):
             os.makedirs(dst_dir)
             for dli in range(len(dl_files)):
                 dl_file = dl_files[dli]
+                # 远程文件地址
                 src_file = os.path.join(src_dir, dl_file)
+                # 本地文件地址
                 dst_file = os.path.join(dst_dir, dl_file)
                 print('>> Downloading dataset {} archive {}...'.format(dataset, dl_file))
+                # 调用wget，下载文件到本地
                 os.system('wget {} -O {}'.format(src_file, dst_file))
                 print('>> Extracting dataset {} archive {}...'.format(dataset, dl_file))
                 # create tmp folder
                 dst_dir_tmp = os.path.join(dst_dir, 'tmp')
                 os.system('mkdir {}'.format(dst_dir_tmp))
                 # extract in tmp folder
+                # 提取下载文件到临时目录
                 os.system('tar -zxf {} -C {}'.format(dst_file, dst_dir_tmp))
+                # 提取图片到结果目录
                 # remove all (possible) subfolders by moving only files in dst_dir
                 os.system('find {} -type f -exec mv -i {{}} {} \\;'.format(dst_dir_tmp, dst_dir))
+                # 删除临时目录
                 # remove tmp folder
                 os.system('rm -rf {}'.format(dst_dir_tmp))
                 print('>> Extracted, deleting dataset {} archive {}...'.format(dataset, dl_file))
+                # 删除下载文件
                 os.system('rm {}'.format(dst_file))
 
+        # 下载指定数据集的真值文件
         gnd_src_dir = os.path.join('http://cmp.felk.cvut.cz/revisitop/data', 'datasets', dataset)
         gnd_dst_dir = os.path.join(data_dir, 'datasets', dataset)
         gnd_dl_file = 'gnd_{}.pkl'.format(dataset)
@@ -80,7 +96,7 @@ def download_distractors(data_dir):
     # Create data folder if it does not exist
     if not os.path.isdir(data_dir):
         os.mkdir(data_dir)
-    
+
     # Create datasets folder if it does not exist
     datasets_dir = os.path.join(data_dir, 'datasets')
     if not os.path.isdir(datasets_dir):
@@ -97,29 +113,31 @@ def download_distractors(data_dir):
         if not os.path.isdir(dst_dir_tmp):
             os.makedirs(dst_dir_tmp)
         for dfi in range(nfiles):
-            dl_file = dl_files.format(dfi+1)
+            dl_file = dl_files.format(dfi + 1)
             src_file = os.path.join(src_dir, dl_file)
             dst_file = os.path.join(dst_dir_tmp, dl_file)
             dst_file_tmp = os.path.join(dst_dir_tmp, dl_file + '.tmp')
             if os.path.exists(dst_file):
-                print('>> [{}/{}] Skipping dataset {} archive {}, already exists...'.format(dfi+1, nfiles, dataset, dl_file))
+                print('>> [{}/{}] Skipping dataset {} archive {}, already exists...'.format(dfi + 1, nfiles, dataset,
+                                                                                            dl_file))
             else:
                 while 1:
                     try:
-                        print('>> [{}/{}] Downloading dataset {} archive {}...'.format(dfi+1, nfiles, dataset, dl_file))
+                        print(
+                            '>> [{}/{}] Downloading dataset {} archive {}...'.format(dfi + 1, nfiles, dataset, dl_file))
                         urllib.request.urlretrieve(src_file, dst_file_tmp)
                         os.rename(dst_file_tmp, dst_file)
                         break
                     except:
                         print('>>>> Download failed. Try this one again...')
         for dfi in range(nfiles):
-            dl_file = dl_files.format(dfi+1)
+            dl_file = dl_files.format(dfi + 1)
             dst_file = os.path.join(dst_dir_tmp, dl_file)
-            print('>> [{}/{}] Extracting dataset {} archive {}...'.format(dfi+1, nfiles, dataset, dl_file))
+            print('>> [{}/{}] Extracting dataset {} archive {}...'.format(dfi + 1, nfiles, dataset, dl_file))
             tar = tarfile.open(dst_file)
             tar.extractall(path=dst_dir_tmp)
             tar.close()
-            print('>> [{}/{}] Extracted, deleting dataset {} archive {}...'.format(dfi+1, nfiles, dataset, dl_file))
+            print('>> [{}/{}] Extracted, deleting dataset {} archive {}...'.format(dfi + 1, nfiles, dataset, dl_file))
             os.remove(dst_file)
         # rename tmp folder
         os.rename(dst_dir_tmp, dst_dir)
@@ -146,13 +164,14 @@ def download_features(data_dir):
     # Create data folder if it does not exist
     if not os.path.isdir(data_dir):
         os.mkdir(data_dir)
-    
+
     # Create features folder if it does not exist
     features_dir = os.path.join(data_dir, 'features')
     if not os.path.isdir(features_dir):
         os.mkdir(features_dir)
 
     # Download example features
+    # 下载特征文件到指定路径
     datasets = ['roxford5k', 'rparis6k']
     for di in range(len(datasets)):
         dataset = datasets[di]
@@ -165,4 +184,8 @@ def download_features(data_dir):
         if not os.path.exists(feat_dst_file):
             print('>> Downloading dataset {} features file {}...'.format(dataset, feat_dl_file))
             os.system('wget {} -O {}'.format(feat_src_file, feat_dst_file))
-    
+
+
+if __name__ == '__main__':
+    data_dir = '/home/zj/data'
+    download_features(data_dir)

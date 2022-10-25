@@ -41,11 +41,14 @@ cfg = configdataset(test_dataset, os.path.join(data_root, 'datasets'))
 # load query and database features
 print('>> {}: Loading features...'.format(test_dataset))    
 features = loadmat(os.path.join(data_root, 'features', '{}_resnet_rsfm120k_gem.mat'.format(test_dataset)))
+# 查询特征集 D x N1
 Q = features['Q']
+# 检索特征集 D x N2
 X = features['X']
 
 # perform search
 print('>> {}: Retrieval...'.format(test_dataset))
+# N2xD * DxN1 = N2xN1
 sim = np.dot(X.T, Q)
 ranks = np.argsort(-sim, axis=0)
 
