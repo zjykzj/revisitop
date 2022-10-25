@@ -254,3 +254,5 @@ dmypy.json
 cython_debug/
 
 /data/
+/simulation/features/
+/simulation/datasets/

@@ -16,7 +16,7 @@ from dataset import configdataset
 from download import download_datasets, download_features
 from evaluate import compute_map
 
-#---------------------------------------------------------------------
+#----------------------------------------------+-----------------------
 # Set data folder and testing parameters
 #---------------------------------------------------------------------
 # Set data folder, change if you have downloaded the data somewhere else
@@ -50,6 +50,8 @@ X = features['X']
 print('>> {}: Retrieval...'.format(test_dataset))
 # N2xD * DxN1 = N2xN1
 sim = np.dot(X.T, Q)
+# GT_Num x Query_Num
+# 按照相似度从大到小进行排序，也就是说，下标越小，表示排名越高
 ranks = np.argsort(-sim, axis=0)
 
 # revisited evaluation
@@ -58,6 +60,9 @@ gnd = cfg['gnd']
 # evaluate ranks
 ks = [1, 5, 10]
 
+# 排序结果，真值标签，评估下标
+# 每个查询图片对应一个easy列表/junk列表/hard列表
+# 对于easy模式，将easy标签数据作为正样本，忽略junk和hard标签
 # search for easy
 gnd_t = []
 for i in range(len(gnd)):
@@ -65,6 +70,11 @@ for i in range(len(gnd)):
     g['ok'] = np.concatenate([gnd[i]['easy']])
     g['junk'] = np.concatenate([gnd[i]['junk'], gnd[i]['hard']])
     gnd_t.append(g)
+# 计算每个查询图片在easy模式下的AP，计算最后的mAP
+# mapE：mAP for easy
+# apsE: AP for each query
+# mprE: mean precision
+# prsE: Precision for each query
 mapE, apsE, mprE, prsE = compute_map(ranks, gnd_t, ks)
 
 # search for easy & hard
